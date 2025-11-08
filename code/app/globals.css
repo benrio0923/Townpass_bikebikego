@@ -1,0 +1,144 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* 使用台北政府APP青綠色系 */
+  --background: #ffffff;
+  --foreground: #22474e;
+
+  --card: #ffffff;
+  --card-foreground: #22474e;
+
+  --popover: #ffffff;
+  --popover-foreground: #22474e;
+
+  /* 主色調 - 使用青綠色 #5AB4C5 */
+  --primary: #5ab4c5;
+  --primary-foreground: #ffffff;
+
+  /* 淺色青綠背景 */
+  --secondary: #edf8fa;
+  --secondary-foreground: #22474e;
+
+  /* 柔和背景色 */
+  --muted: #dbf1f5;
+  --muted-foreground: #356c77;
+
+  --accent: #93d4df;
+  --accent-foreground: #22474e;
+
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: #ffffff;
+
+  --border: #b4e2ea;
+  --input: #b4e2ea;
+  --ring: #5ab4c5;
+
+  /* 圖表色系 */
+  --chart-1: #5ab4c5;
+  --chart-2: #93d4df;
+  --chart-3: #71c5d5;
+  --chart-4: #468d9b;
+  --chart-5: #356c77;
+
+  --radius: 1rem;
+
+  /* 自定義色調 */
+  --tp-50: #edf8fa;
+  --tp-100: #dbf1f5;
+  --tp-200: #b4e2ea;
+  --tp-300: #93d4df;
+  --tp-400: #71c5d5;
+  --tp-500: #5ab4c5;
+  --tp-600: #468d9b;
+  --tp-700: #356c77;
+  --tp-800: #22474e;
+  --tp-900: #112629;
+}
+
+.dark {
+  --background: #112629;
+  --foreground: #edf8fa;
+
+  --card: #22474e;
+  --card-foreground: #edf8fa;
+
+  --popover: #22474e;
+  --popover-foreground: #edf8fa;
+
+  --primary: #5ab4c5;
+  --primary-foreground: #ffffff;
+
+  --secondary: #356c77;
+  --secondary-foreground: #edf8fa;
+
+  --muted: #356c77;
+  --muted-foreground: #93d4df;
+
+  --accent: #468d9b;
+  --accent-foreground: #edf8fa;
+
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: #edf8fa;
+
+  --border: #356c77;
+  --input: #356c77;
+  --ring: #5ab4c5;
+
+  --chart-1: #5ab4c5;
+  --chart-2: #93d4df;
+  --chart-3: #71c5d5;
+  --chart-4: #468d9b;
+  --chart-5: #356c77;
+}
+
+@theme inline {
+  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

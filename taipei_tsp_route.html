@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_6fa066c130f46a99dbcaf65fadfbcd2b {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@3.0.0/Control.FullScreen.css"/>
+</head>
+<body>
+    
+    
+    <div style="position: fixed; 
+                bottom: 50px; right: 50px; width: 250px; height: auto; 
+                background-color: white; border:2px solid grey; z-index:9999; 
+                font-size:14px; padding: 10px; border-radius: 5px;">
+        <h4 style="margin-top:0;">🗺️ TSP 最佳路線</h4>
+        <p><span style="color: red;">📍</span> 景點</p>
+        <p><span style="color: green;">🚲</span> YouBike 站點</p>
+        <p><span style="color: blue;">━━</span> 規劃路線</p>
+        <hr>
+        <p><b>總距離：</b>32.76 公里</p>
+        <p><b>停靠點數：</b>8 個</p>
+    </div>
+    
+    
+            <div class="folium-map" id="map_6fa066c130f46a99dbcaf65fadfbcd2b" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_6fa066c130f46a99dbcaf65fadfbcd2b = L.map(
+                "map_6fa066c130f46a99dbcaf65fadfbcd2b",
+                {
+                    center: [25.07143, 121.5415525],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 13,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_9dc7e13a5ac56e58dd77579deb045232 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_9dc7e13a5ac56e58dd77579deb045232.addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var poly_line_c93713787d576b984c7d54d584190201 = L.polyline(
+                [[25.03361, 121.56476], [25.04369, 121.56063], [25.03953, 121.51886], [25.06491, 121.52449], [25.09992, 121.52802], [25.13102, 121.50408], [25.11306, 121.53945], [25.0457, 121.59213], [25.03361, 121.56476]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.7, "smoothFactor": 1.0, "stroke": true, "weight": 3}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+        var popup_aa847cc33fbc2771e46a927b36aa9036 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_5a4b1a56a40a197742722c15c9e3a1c8 = $(`<div id="html_5a4b1a56a40a197742722c15c9e3a1c8" style="width: 100.0%; height: 100.0%;">總距離: 32.76 公里</div>`)[0];
+                popup_aa847cc33fbc2771e46a927b36aa9036.setContent(html_5a4b1a56a40a197742722c15c9e3a1c8);
+            
+        
+
+        poly_line_c93713787d576b984c7d54d584190201.bindPopup(popup_aa847cc33fbc2771e46a927b36aa9036)
+        ;
+
+        
+    
+    
+            var marker_1e62dee7cdac644dd35311d3700d0357 = L.marker(
+                [25.03361, 121.56476],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var icon_0f6c667473244fd5a3ed732454815fab = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_6ce67e5f0470be2b6b00f6d8bb1b007e = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_9790944f7e11a6139d6f396b6c75ff72 = $(`<div id="html_9790944f7e11a6139d6f396b6c75ff72" style="width: 100.0%; height: 100.0%;">             <div style="width: 250px;">                 <h4 style="color: #FF6B6B;">📍 景點 1: 台北101</h4>                 <hr>                 <b>地址：</b>110 臺北市信義區信義路5段7號<br>                 <b>簡介：</b><br>                 <p style="font-size: 12px; color: #666;">台北101購物中心為地上5樓，地下1樓的購物空間，23000坪，是臺灣首座國際頂級購物中心。擁有許多精品旗艦店，如BALLY、LV、Prada、Gucci、Cartier、DIOR及FENDI等，消費...</p>             </div>             </div>`)[0];
+                popup_6ce67e5f0470be2b6b00f6d8bb1b007e.setContent(html_9790944f7e11a6139d6f396b6c75ff72);
+            
+        
+
+        marker_1e62dee7cdac644dd35311d3700d0357.bindPopup(popup_6ce67e5f0470be2b6b00f6d8bb1b007e)
+        ;
+
+        
+    
+    
+            marker_1e62dee7cdac644dd35311d3700d0357.bindTooltip(
+                `<div>
+                     停靠點 1: 台北101
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_1e62dee7cdac644dd35311d3700d0357.setIcon(icon_0f6c667473244fd5a3ed732454815fab);
+            
+    
+            var marker_5a97a76386ab523c7f0ce78c63eae497 = L.marker(
+                [25.03361, 121.56476],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var div_icon_a123e75b00685a3d5a8f07d5e8a5a44b = L.divIcon({
+  "html": "\n                \u003cdiv style=\"\n                    font-size: 16px; \n                    font-weight: bold; \n                    color: white; \n                    background-color: red; \n                    border-radius: 50%; \n                    width: 30px; \n                    height: 30px; \n                    display: flex; \n                    align-items: center; \n                    justify-content: center;\n                    border: 2px solid white;\n                \"\u003e1\u003c/div\u003e\n            ",
+  "className": "empty",
+});
+        
+    
+                marker_5a97a76386ab523c7f0ce78c63eae497.setIcon(div_icon_a123e75b00685a3d5a8f07d5e8a5a44b);
+            
+    
+            var marker_bb28a35f71b86d4ebf7aeaa7471a3375 = L.marker(
+                [25.04369, 121.56063],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var icon_9c2bfabdd7d3d03a6d3bc32bfdbf0c6d = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_9d9443a4e865c406f95864ff9fc99bb0 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_f308b3fef87758fbbe2ee72ce03e7dab = $(`<div id="html_f308b3fef87758fbbe2ee72ce03e7dab" style="width: 100.0%; height: 100.0%;">             <div style="width: 250px;">                 <h4 style="color: #FF6B6B;">📍 景點 2: 松山文創園區</h4>                 <hr>                 <b>地址：</b>110 臺北市信義區光復南路133號<br>                 <b>簡介：</b><br>                 <p style="font-size: 12px; color: #666;">松山文創園區的前身是建於1937年日據時期的松山菸廠，曾是臺灣現代化工業的代表，更是全臺第一座專業的捲菸工廠。
+ 
+ 園區內的建築風格以「日本初現代主義」為主，設計簡約卻不失精緻。擁有簡潔的線條、大面...</p>             </div>             </div>`)[0];
+                popup_9d9443a4e865c406f95864ff9fc99bb0.setContent(html_f308b3fef87758fbbe2ee72ce03e7dab);
+            
+        
+
+        marker_bb28a35f71b86d4ebf7aeaa7471a3375.bindPopup(popup_9d9443a4e865c406f95864ff9fc99bb0)
+        ;
+
+        
+    
+    
+            marker_bb28a35f71b86d4ebf7aeaa7471a3375.bindTooltip(
+                `<div>
+                     停靠點 2: 松山文創園區
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_bb28a35f71b86d4ebf7aeaa7471a3375.setIcon(icon_9c2bfabdd7d3d03a6d3bc32bfdbf0c6d);
+            
+    
+            var marker_00a1a5c9b0b0fba1251e3dfd6d880e92 = L.marker(
+                [25.04369, 121.56063],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var div_icon_b3a00230c77c35babf904cdc02e8ea3e = L.divIcon({
+  "html": "\n                \u003cdiv style=\"\n                    font-size: 16px; \n                    font-weight: bold; \n                    color: white; \n                    background-color: red; \n                    border-radius: 50%; \n                    width: 30px; \n                    height: 30px; \n                    display: flex; \n                    align-items: center; \n                    justify-content: center;\n                    border: 2px solid white;\n                \"\u003e2\u003c/div\u003e\n            ",
+  "className": "empty",
+});
+        
+    
+                marker_00a1a5c9b0b0fba1251e3dfd6d880e92.setIcon(div_icon_b3a00230c77c35babf904cdc02e8ea3e);
+            
+    
+            var marker_9715fb665dba1474148e5eeceebe4e4d = L.marker(
+                [25.03953, 121.51886],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var icon_ca21f149587592cae22c9f29843d67bb = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_3b656e284e4bf8fec3267154be0e16b6 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_03ff42bd4e9ad075a58de3a27c1f0375 = $(`<div id="html_03ff42bd4e9ad075a58de3a27c1f0375" style="width: 100.0%; height: 100.0%;">             <div style="width: 250px;">                 <h4 style="color: #FF6B6B;">📍 景點 3: 國立臺灣大學博物館群_醫學人文博物館</h4>                 <hr>                 <b>地址：</b>100 臺北市中正區仁愛路一段1號<br>                 <b>簡介：</b><br>                 <p style="font-size: 12px; color: #666;">醫學人文博物館，是日據時期台北帝國大學醫學部的校舍，最早的建築始於1907年，由日籍建築師近藤十郎所設計，主體建築則完工於1913年。
+ 
+ 雖歷經百年，經過多次修復，然原建築的風貌仍大部份保留；建築...</p>             </div>             </div>`)[0];
+                popup_3b656e284e4bf8fec3267154be0e16b6.setContent(html_03ff42bd4e9ad075a58de3a27c1f0375);
+            
+        
+
+        marker_9715fb665dba1474148e5eeceebe4e4d.bindPopup(popup_3b656e284e4bf8fec3267154be0e16b6)
+        ;
+
+        
+    
+    
+            marker_9715fb665dba1474148e5eeceebe4e4d.bindTooltip(
+                `<div>
+                     停靠點 3: 國立臺灣大學博物館群_醫學人文博物館
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_9715fb665dba1474148e5eeceebe4e4d.setIcon(icon_ca21f149587592cae22c9f29843d67bb);
+            
+    
+            var marker_7b5f86b285d87e5bcad91b373642eed4 = L.marker(
+                [25.03953, 121.51886],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var div_icon_c8c7736f5c4c37ed399b260d022c8bc2 = L.divIcon({
+  "html": "\n                \u003cdiv style=\"\n                    font-size: 16px; \n                    font-weight: bold; \n                    color: white; \n                    background-color: red; \n                    border-radius: 50%; \n                    width: 30px; \n                    height: 30px; \n                    display: flex; \n                    align-items: center; \n                    justify-content: center;\n                    border: 2px solid white;\n                \"\u003e3\u003c/div\u003e\n            ",
+  "className": "empty",
+});
+        
+    
+                marker_7b5f86b285d87e5bcad91b373642eed4.setIcon(div_icon_c8c7736f5c4c37ed399b260d022c8bc2);
+            
+    
+            var marker_a9418880902af2868b3b31507b3706cb = L.marker(
+                [25.06491, 121.52449],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var icon_b51b7180df529069ca74ba12c0f16de4 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "orange",
+  "iconColor": "white",
+  "icon": "bicycle",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_7eb0c4359fc0bda0970b407f145324b3 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_a789422aa7ebebb4f05a93fcbf12e4d1 = $(`<div id="html_a789422aa7ebebb4f05a93fcbf12e4d1" style="width: 100.0%; height: 100.0%;">             <div style="width: 200px;">                 <h4 style="color: orange;">🚲 站點 4: YouBike2.0_農安雙城街口</h4>                 <hr>                 <b>可借車輛：</b><span style="color: orange; font-size: 16px;">8</span> 輛<br>                 <b>可還空位：</b>7 位             </div>             </div>`)[0];
+                popup_7eb0c4359fc0bda0970b407f145324b3.setContent(html_a789422aa7ebebb4f05a93fcbf12e4d1);
+            
+        
+
+        marker_a9418880902af2868b3b31507b3706cb.bindPopup(popup_7eb0c4359fc0bda0970b407f145324b3)
+        ;
+
+        
+    
+    
+            marker_a9418880902af2868b3b31507b3706cb.bindTooltip(
+                `<div>
+                     停靠點 4: YouBike2.0_農安雙城街口
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_a9418880902af2868b3b31507b3706cb.setIcon(icon_b51b7180df529069ca74ba12c0f16de4);
+            
+    
+            var marker_2b3a81a16876626ac424d71bc37b2ec7 = L.marker(
+                [25.06491, 121.52449],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var div_icon_356eabd58b5902c4ba42bbdbcb7df0cd = L.divIcon({
+  "html": "\n                \u003cdiv style=\"\n                    font-size: 16px; \n                    font-weight: bold; \n                    color: white; \n                    background-color: green; \n                    border-radius: 50%; \n                    width: 30px; \n                    height: 30px; \n                    display: flex; \n                    align-items: center; \n                    justify-content: center;\n                    border: 2px solid white;\n                \"\u003e4\u003c/div\u003e\n            ",
+  "className": "empty",
+});
+        
+    
+                marker_2b3a81a16876626ac424d71bc37b2ec7.setIcon(div_icon_356eabd58b5902c4ba42bbdbcb7df0cd);
+            
+    
+            var marker_ed281ba69e131585ea5b215fc589d2bf = L.marker(
+                [25.09992, 121.52802],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var icon_b8044b224dba3cc119fce68b9437136b = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_346ba648ef9295f2cb041b01213595ce = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_41880e0e3edf98682c35b7c3665f41f1 = $(`<div id="html_41880e0e3edf98682c35b7c3665f41f1" style="width: 100.0%; height: 100.0%;">             <div style="width: 250px;">                 <h4 style="color: #FF6B6B;">📍 景點 5: 雙溪生活水岸自行車道</h4>                 <hr>                 <b>地址：</b>111 臺北市士林區雙溪河濱公園<br>                 <b>簡介：</b><br>                 <p style="font-size: 12px; color: #666;">從陽明山國家公園發源的雙溪，流經東吳大學之後，轉往公路北側，河濱綠地公園也由此綿延展開，河濱自行車道順勢闢建於左右兩岸，成為臺北市河川單車路網中，最貼近住宅區也維護得極為完善的短小精緻路徑。
+ 
+ 景...</p>             </div>             </div>`)[0];
+                popup_346ba648ef9295f2cb041b01213595ce.setContent(html_41880e0e3edf98682c35b7c3665f41f1);
+            
+        
+
+        marker_ed281ba69e131585ea5b215fc589d2bf.bindPopup(popup_346ba648ef9295f2cb041b01213595ce)
+        ;
+
+        
+    
+    
+            marker_ed281ba69e131585ea5b215fc589d2bf.bindTooltip(
+                `<div>
+                     停靠點 5: 雙溪生活水岸自行車道
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_ed281ba69e131585ea5b215fc589d2bf.setIcon(icon_b8044b224dba3cc119fce68b9437136b);
+            
+    
+            var marker_178ed2009cc5c861e54645e9689e51e1 = L.marker(
+                [25.09992, 121.52802],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var div_icon_b0b45e038422f6f6a836ff0643a0ec6f = L.divIcon({
+  "html": "\n                \u003cdiv style=\"\n                    font-size: 16px; \n                    font-weight: bold; \n                    color: white; \n                    background-color: red; \n                    border-radius: 50%; \n                    width: 30px; \n                    height: 30px; \n                    display: flex; \n                    align-items: center; \n                    justify-content: center;\n                    border: 2px solid white;\n                \"\u003e5\u003c/div\u003e\n            ",
+  "className": "empty",
+});
+        
+    
+                marker_178ed2009cc5c861e54645e9689e51e1.setIcon(div_icon_b0b45e038422f6f6a836ff0643a0ec6f);
+            
+    
+            var marker_e5a262059313385a75a9525822c385c3 = L.marker(
+                [25.13102, 121.50408],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var icon_ffe1dfc91b4dc548ca5a4f689e018411 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "bicycle",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_631413de037ff92873696b77986c6ed6 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_0b4c4d97ace597684fa034053aec7e73 = $(`<div id="html_0b4c4d97ace597684fa034053aec7e73" style="width: 100.0%; height: 100.0%;">             <div style="width: 200px;">                 <h4 style="color: green;">🚲 站點 6: YouBike2.0_大豐公園</h4>                 <hr>                 <b>可借車輛：</b><span style="color: green; font-size: 16px;">19</span> 輛<br>                 <b>可還空位：</b>28 位             </div>             </div>`)[0];
+                popup_631413de037ff92873696b77986c6ed6.setContent(html_0b4c4d97ace597684fa034053aec7e73);
+            
+        
+
+        marker_e5a262059313385a75a9525822c385c3.bindPopup(popup_631413de037ff92873696b77986c6ed6)
+        ;
+
+        
+    
+    
+            marker_e5a262059313385a75a9525822c385c3.bindTooltip(
+                `<div>
+                     停靠點 6: YouBike2.0_大豐公園
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_e5a262059313385a75a9525822c385c3.setIcon(icon_ffe1dfc91b4dc548ca5a4f689e018411);
+            
+    
+            var marker_2ba994528a18ff2f8f1aec442697f33d = L.marker(
+                [25.13102, 121.50408],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var div_icon_6f4ecb99e17531f0344a9b02e0e20d0a = L.divIcon({
+  "html": "\n                \u003cdiv style=\"\n                    font-size: 16px; \n                    font-weight: bold; \n                    color: white; \n                    background-color: green; \n                    border-radius: 50%; \n                    width: 30px; \n                    height: 30px; \n                    display: flex; \n                    align-items: center; \n                    justify-content: center;\n                    border: 2px solid white;\n                \"\u003e6\u003c/div\u003e\n            ",
+  "className": "empty",
+});
+        
+    
+                marker_2ba994528a18ff2f8f1aec442697f33d.setIcon(div_icon_6f4ecb99e17531f0344a9b02e0e20d0a);
+            
+    
+            var marker_7e5f19f7dd8da82f69c84eacf11fb108 = L.marker(
+                [25.11306, 121.53945],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var icon_834f5912687ea93e3ebb43fb7a76cdc3 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "orange",
+  "iconColor": "white",
+  "icon": "bicycle",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_49b0ec1be4573475259c10e03865cba7 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_6de931bff4360c343b59bf359308d334 = $(`<div id="html_6de931bff4360c343b59bf359308d334" style="width: 100.0%; height: 100.0%;">             <div style="width: 200px;">                 <h4 style="color: orange;">🚲 站點 7: YouBike2.0_東山路110巷口</h4>                 <hr>                 <b>可借車輛：</b><span style="color: orange; font-size: 16px;">7</span> 輛<br>                 <b>可還空位：</b>8 位             </div>             </div>`)[0];
+                popup_49b0ec1be4573475259c10e03865cba7.setContent(html_6de931bff4360c343b59bf359308d334);
+            
+        
+
+        marker_7e5f19f7dd8da82f69c84eacf11fb108.bindPopup(popup_49b0ec1be4573475259c10e03865cba7)
+        ;
+
+        
+    
+    
+            marker_7e5f19f7dd8da82f69c84eacf11fb108.bindTooltip(
+                `<div>
+                     停靠點 7: YouBike2.0_東山路110巷口
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_7e5f19f7dd8da82f69c84eacf11fb108.setIcon(icon_834f5912687ea93e3ebb43fb7a76cdc3);
+            
+    
+            var marker_4a37ecd4552ce8a3de894e1fd6a62cdb = L.marker(
+                [25.11306, 121.53945],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var div_icon_d0fc87b4bbedbbe2a8f4fe312bc08409 = L.divIcon({
+  "html": "\n                \u003cdiv style=\"\n                    font-size: 16px; \n                    font-weight: bold; \n                    color: white; \n                    background-color: green; \n                    border-radius: 50%; \n                    width: 30px; \n                    height: 30px; \n                    display: flex; \n                    align-items: center; \n                    justify-content: center;\n                    border: 2px solid white;\n                \"\u003e7\u003c/div\u003e\n            ",
+  "className": "empty",
+});
+        
+    
+                marker_4a37ecd4552ce8a3de894e1fd6a62cdb.setIcon(div_icon_d0fc87b4bbedbbe2a8f4fe312bc08409);
+            
+    
+            var marker_20e40d0e735bc674a2a3dd4fb2e0eeab = L.marker(
+                [25.0457, 121.59213],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var icon_848269a89527db9bf890de068ed8d0b0 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_34b7a5cb2af02927f2ad9acfa9e09bb5 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_bee353a75658004aba50f284adb25507 = $(`<div id="html_bee353a75658004aba50f284adb25507" style="width: 100.0%; height: 100.0%;">             <div style="width: 250px;">                 <h4 style="color: #FF6B6B;">📍 景點 8: 南港公園</h4>                 <hr>                 <b>地址：</b>115 臺北市南港區東新街170之1號<br>                 <b>簡介：</b><br>                 <p style="font-size: 12px; color: #666;">南港公園於民國76年闢建，面積近約11.8公頃，園內地勢依山傍水，建築饒富中國風味，入口處更有相當氣派的中式牌樓。
+ 
+ 公園位於東新街與成福路交接口處，北接聯勤總部，南聯南港國宅，向東遠眺可望及信義...</p>             </div>             </div>`)[0];
+                popup_34b7a5cb2af02927f2ad9acfa9e09bb5.setContent(html_bee353a75658004aba50f284adb25507);
+            
+        
+
+        marker_20e40d0e735bc674a2a3dd4fb2e0eeab.bindPopup(popup_34b7a5cb2af02927f2ad9acfa9e09bb5)
+        ;
+
+        
+    
+    
+            marker_20e40d0e735bc674a2a3dd4fb2e0eeab.bindTooltip(
+                `<div>
+                     停靠點 8: 南港公園
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_20e40d0e735bc674a2a3dd4fb2e0eeab.setIcon(icon_848269a89527db9bf890de068ed8d0b0);
+            
+    
+            var marker_8c23a8ddeeef77ab7b65863f618a18d8 = L.marker(
+                [25.0457, 121.59213],
+                {
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+    
+            var div_icon_463612db72d01f2c1e8d9de6bf7f9e3d = L.divIcon({
+  "html": "\n                \u003cdiv style=\"\n                    font-size: 16px; \n                    font-weight: bold; \n                    color: white; \n                    background-color: red; \n                    border-radius: 50%; \n                    width: 30px; \n                    height: 30px; \n                    display: flex; \n                    align-items: center; \n                    justify-content: center;\n                    border: 2px solid white;\n                \"\u003e8\u003c/div\u003e\n            ",
+  "className": "empty",
+});
+        
+    
+                marker_8c23a8ddeeef77ab7b65863f618a18d8.setIcon(div_icon_463612db72d01f2c1e8d9de6bf7f9e3d);
+            
+    
+            L.control.fullscreen(
+                {
+  "position": "topright",
+  "title": "\u5168\u87a2\u5e55",
+  "titleCancel": "\u9000\u51fa\u5168\u87a2\u5e55",
+  "forceSeparateButton": true,
+}
+            ).addTo(map_6fa066c130f46a99dbcaf65fadfbcd2b);
+        
+</script>
+</html>
