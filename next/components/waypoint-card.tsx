@@ -14,7 +14,8 @@ interface WaypointCardProps {
   shape: string;
   userId: string;
   isCheckedIn?: boolean;
-  onCheckInSuccess?: () => void;
+  isCompleted?: boolean;
+  onCheckInSuccess?: (waypointId: string) => void;
 }
 
 export function WaypointCard({
@@ -23,11 +24,15 @@ export function WaypointCard({
   shape,
   userId,
   isCheckedIn = false,
+  isCompleted = false,
   onCheckInSuccess
 }: WaypointCardProps) {
   const { checkIn, loading } = useCheckIn();
   const [checkedIn, setCheckedIn] = useState(isCheckedIn);
   const [checkInMessage, setCheckInMessage] = useState<string>('');
+  
+  // 如果路線已完成，強制顯示為已打卡
+  const displayAsChecked = isCompleted || checkedIn;
 
   const handleNavigate = () => {
     // Open Google Maps with directions to this waypoint
@@ -75,7 +80,7 @@ export function WaypointCard({
         if (result.success && result.verified) {
           setCheckedIn(true);
           setCheckInMessage(`✓ 打卡成功！距離景點 ${result.distance.toFixed(0)} 公尺`);
-          onCheckInSuccess?.();
+          onCheckInSuccess?.(waypoint.id);
         } else {
           const distanceMsg = result.distance > 0 ? `（距離 ${result.distance.toFixed(0)} 公尺）` : '';
           setCheckInMessage(`${result.message || '打卡失敗'} ${distanceMsg}`);
@@ -88,11 +93,19 @@ export function WaypointCard({
   };
 
   return (
-    <Card className="p-4 bg-white border-2 border-[#B4E2EA] hover:border-[#5AB4C5] transition-colors">
+    <Card className={`p-4 border-2 transition-colors ${
+      isCompleted 
+        ? 'bg-gray-100 border-gray-300' 
+        : 'bg-white border-[#B4E2EA] hover:border-[#5AB4C5]'
+    }`}>
       <div className="flex items-start gap-4">
         {/* Index Badge */}
         <div className="flex-shrink-0">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5AB4C5] to-[#71C5D5] flex items-center justify-center text-white font-bold">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+            isCompleted
+              ? 'bg-gray-400'
+              : 'bg-gradient-to-br from-[#5AB4C5] to-[#71C5D5]'
+          }`}>
             {index}
           </div>
         </div>
@@ -101,10 +114,14 @@ export function WaypointCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-[#22474E] mb-1">
+              <h3 className={`text-lg font-semibold mb-1 ${
+                isCompleted ? 'text-gray-600' : 'text-[#22474E]'
+              }`}>
                 {waypoint.name}
               </h3>
-              <p className="text-sm text-[#356C77]">
+              <p className={`text-sm ${
+                isCompleted ? 'text-gray-500' : 'text-[#356C77]'
+              }`}>
                 {waypoint.description}
               </p>
             </div>
@@ -125,7 +142,9 @@ export function WaypointCard({
 
           {/* YouBike Info */}
           {waypoint.type === 'youbike' && waypoint.available_bikes !== undefined && (
-            <div className="text-xs text-[#5AB4C5] mb-2">
+            <div className={`text-xs mb-2 ${
+              isCompleted ? 'text-gray-500' : 'text-[#5AB4C5]'
+            }`}>
               可借：{waypoint.available_bikes} 輛
             </div>
           )}
@@ -135,17 +154,26 @@ export function WaypointCard({
             <Button
               size="sm"
               variant="outline"
-              className="flex items-center gap-1 text-[#5AB4C5] border-[#5AB4C5] hover:bg-[#EDF8FA]"
+              className={`flex items-center gap-1 ${
+                isCompleted
+                  ? 'text-gray-500 border-gray-400 cursor-not-allowed'
+                  : 'text-[#5AB4C5] border-[#5AB4C5] hover:bg-[#EDF8FA]'
+              }`}
               onClick={handleNavigate}
+              disabled={isCompleted}
             >
               <Navigation className="w-4 h-4" />
               導航
             </Button>
 
-            {checkedIn ? (
+            {displayAsChecked ? (
               <Button
                 size="sm"
-                className="flex items-center gap-1 bg-[#71C5D5] text-white cursor-default"
+                className={`flex items-center gap-1 cursor-default ${
+                  isCompleted
+                    ? 'bg-gray-400 text-white'
+                    : 'bg-[#71C5D5] text-white'
+                }`}
                 disabled
               >
                 <CheckCircle2 className="w-4 h-4" />
@@ -165,7 +193,7 @@ export function WaypointCard({
           </div>
 
           {/* Check-in Message */}
-          {checkInMessage && (
+          {checkInMessage && !isCompleted && (
             <div className={`text-xs mt-2 p-2 rounded ${
               checkedIn 
                 ? 'bg-green-50 text-green-700 border border-green-200' 
@@ -174,6 +202,13 @@ export function WaypointCard({
                 : 'bg-red-50 text-red-700 border border-red-200'
             }`}>
               {checkInMessage}
+            </div>
+          )}
+          
+          {/* Completed Route Message */}
+          {isCompleted && (
+            <div className="text-xs mt-2 p-2 rounded bg-gray-100 text-gray-600 border border-gray-300">
+              ✓ 路線已完成
             </div>
           )}
         </div>

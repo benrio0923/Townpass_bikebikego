@@ -15,11 +15,12 @@ export interface RouteDetail {
   shape: string;
   name: string;
   description: string;
-  similarity: number;
   route_geometry: [number, number][];
   waypoints: Waypoint[];
   distance_km: number;
   duration_min: number;
+  completed_time?: string;
+  duration_hours?: number;
 }
 
 export interface CheckInRequest {
@@ -38,6 +39,15 @@ export interface CheckInResponse {
   timestamp: string;
 }
 
+export interface RouteSession {
+  userId: string;
+  shape: string;
+  status: 'started' | 'completed';
+  start_time: string;
+  end_time?: string;
+  duration_hours?: number;
+}
+
 export interface UserProgress {
   userId: string;
   progress: Array<{
@@ -53,13 +63,14 @@ export interface UserProgress {
     timestamp: string;
     verified: boolean;
   }>;
+  sessions?: RouteSession[];
   total_checkins: number;
 }
 
 /**
  * Hook to fetch route detail for a specific shape
  */
-export function useRouteDetail(shape: string | null) {
+export function useRouteDetail(shape: string | null, userId?: string) {
   const [data, setData] = useState<RouteDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +86,10 @@ export function useRouteDetail(shape: string | null) {
       setError(null);
       
       try {
-        const response = await fetch(`/api/backend/v1/route/${shape}`);
+        const url = userId 
+          ? `/api/backend/route/${shape}?userId=${userId}`
+          : `/api/backend/route/${shape}`;
+        const response = await fetch(url);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch route: ${response.statusText}`);
@@ -92,7 +106,7 @@ export function useRouteDetail(shape: string | null) {
     };
 
     fetchRoute();
-  }, [shape]);
+  }, [shape, userId]);
 
   return { data, loading, error };
 }
@@ -109,7 +123,7 @@ export function useCheckIn() {
     setError(null);
 
     try {
-      const response = await fetch('/api/backend/v1/checkin', {
+      const response = await fetch('/api/backend/checkin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -156,8 +170,8 @@ export function useProgress(userId: string, shape?: string) {
 
       try {
         const url = shape 
-          ? `/api/backend/v1/progress/${userId}?shape=${shape}`
-          : `/api/backend/v1/progress/${userId}`;
+          ? `/api/backend/progress/${userId}?shape=${shape}`
+          : `/api/backend/progress/${userId}`;
           
         const response = await fetch(url);
 
@@ -184,8 +198,8 @@ export function useProgress(userId: string, shape?: string) {
     setLoading(true);
     try {
       const url = shape 
-        ? `/api/backend/v1/progress/${userId}?shape=${shape}`
-        : `/api/backend/v1/progress/${userId}`;
+        ? `/api/backend/progress/${userId}?shape=${shape}`
+        : `/api/backend/progress/${userId}`;
         
       const response = await fetch(url);
       if (response.ok) {
@@ -200,5 +214,130 @@ export function useProgress(userId: string, shape?: string) {
   };
 
   return { data, loading, error, refresh };
+}
+
+/**
+ * Hook to start a route session
+ */
+export function useStartRoute() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const startRoute = async (userId: string, shape: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/backend/route/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, shape }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to start route: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      console.error('Start route error:', err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { startRoute, loading, error };
+}
+
+/**
+ * Hook to complete a route session
+ */
+export function useCompleteRoute() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const completeRoute = async (userId: string, shape: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/backend/route/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, shape }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to complete route: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      console.error('Complete route error:', err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { completeRoute, loading, error };
+}
+
+/**
+ * Hook to download certificate
+ */
+export function useDownloadCertificate() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const downloadCertificate = async (userId: string, shape: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/backend/certificate/${userId}/${shape}`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to download certificate: ${response.statusText}`);
+      }
+
+      // 取得圖片 blob
+      const blob = await response.blob();
+      
+      // 創建下載連結
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `certificate_${shape}_${userId}.png`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // 清理
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      console.error('Download certificate error:', err);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { downloadCertificate, loading, error };
 }
 

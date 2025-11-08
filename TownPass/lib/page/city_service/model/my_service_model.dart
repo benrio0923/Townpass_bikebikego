@@ -185,12 +185,12 @@ extension MyServiceIdExt on MyServiceItemId {
           destinationUrl: '',
         ),
       MyServiceItemId.taipeiDiscoveryPass => MyServiceItem(
-          title: '台北探索通',
-          description: '探索台北景點、規劃路線、追蹤進度',
+          title: '台北騎跡',
+          description: '騎出字母軌跡，探索台北景點',
           icon: Assets.svg.iconTaipeiDiscovery.svg(),
           category: MyServiceCategory.explore,
           destinationUrl: 'http://localhost:3000',
-          forceWebViewTitle: '台北探索通',
+          forceWebViewTitle: '台北騎跡',
         ),
     };
   }

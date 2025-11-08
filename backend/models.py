@@ -62,11 +62,12 @@ class RouteDetail(BaseModel):
     shape: str = Field(..., description="圖形 ID")
     name: str = Field(..., description="路線名稱")
     description: str = Field(..., description="路線描述")
-    similarity: float = Field(..., description="形狀相似度")
     route_geometry: List[List[float]] = Field(..., description="路線幾何座標 [[lat, lon], ...]")
     waypoints: List[Waypoint] = Field(..., description="路徑點陣列")
     distance_km: float = Field(default=0, description="總距離（公里）")
     duration_min: float = Field(default=0, description="預估時間（分鐘）")
+    completed_time: Optional[str] = Field(None, description="完成時間 (ISO 格式)")
+    duration_hours: Optional[float] = Field(None, description="耗時（小時）")
 
 class CheckInRequest(BaseModel):
     """打卡請求"""
@@ -95,3 +96,28 @@ class UserProgress(BaseModel):
     completed_waypoints: int = Field(..., description="已完成路徑點數")
     completion_rate: float = Field(..., description="完成率")
     last_updated: datetime = Field(..., description="最後更新時間")
+
+class RouteSession(BaseModel):
+    """路線會話（計時記錄）"""
+    userId: str = Field(..., description="使用者 ID")
+    shape: str = Field(..., description="圖形 ID")
+    status: str = Field(..., description="狀態 (started/completed)")
+    start_time: datetime = Field(..., description="開始時間")
+    end_time: Optional[datetime] = Field(None, description="結束時間")
+    duration_hours: Optional[float] = Field(None, description="耗時（小時）")
+
+class StartRouteRequest(BaseModel):
+    """開始路線請求"""
+    userId: str = Field(..., description="使用者 ID")
+    shape: str = Field(..., description="圖形 ID")
+
+class CompleteRouteRequest(BaseModel):
+    """完成路線請求"""
+    userId: str = Field(..., description="使用者 ID")
+    shape: str = Field(..., description="圖形 ID")
+
+class CertificateRequest(BaseModel):
+    """證書生成請求"""
+    userId: str = Field(..., description="使用者 ID")
+    shape: str = Field(..., description="圖形 ID")
+    userName: Optional[str] = Field(None, description="使用者名稱")

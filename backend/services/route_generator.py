@@ -50,9 +50,8 @@ def generate_route_for_shape(shape: str, lat: float, lon: float) -> Optional[Dic
     try:
         print(f"  🎨 生成 {shape} 形路線...")
         
-        # 設定配置
-        config = RouteConfig()
-        config.target_shape = shape
+        # 設定配置（直接傳入 shape 參數）
+        config = RouteConfig(shape=shape)
         config.user_location = {'lat': lat, 'lon': lon}
         
         # 抓取資料

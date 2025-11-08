@@ -32,14 +32,36 @@ import geocoder
 # ===================================================================
 # 配置參數類別
 # ===================================================================
+
+# 根據字母複雜度設定點數
+SHAPE_WAYPOINT_CONFIG = {
+    # 簡單字母：9-10個點
+    'T': 10, 'Ｔ': 10,
+    'I': 9, 'Ｉ': 9,
+    'O': 10, 'Ｏ': 10,
+    'U': 10, 'Ｕ': 10,
+    
+    # 中等字母：11-12個點
+    'A': 12, 'Ａ': 12,
+    'P': 11, 'Ｐ': 11,
+    'L': 11, 'Ｌ': 11,
+    
+    # 複雜字母：13-15個點
+    'S': 14, 'Ｓ': 14,
+    'E': 13, 'Ｅ': 13,
+    
+    # 其他字母預設12個點
+    '8': 12,
+}
+
 class RouteConfig:
     """路線規劃配置參數"""
-    def __init__(self):
+    def __init__(self, shape='S'):
         # 使用者位置（固定位置：臺大新體育館附近）
         self.user_location = {'lat': 25.021777051200228, 'lon': 121.5354050968437}
         
         # 路線形狀
-        self.target_shape = 'S'
+        self.target_shape = shape
         
         # 時間與距離限制
         self.max_segment_time = 20  # 分鐘
@@ -54,11 +76,11 @@ class RouteConfig:
         self.attraction_radius = 500  # 公尺
         self.max_attractions_per_stop = 3
         
-        # 圖形匹配
-        self.num_waypoints = 6
+        # 圖形匹配 - 根據字母動態決定點數（9-15之間）
+        self.num_waypoints = SHAPE_WAYPOINT_CONFIG.get(shape, 12)
         
         # 輸出設定
-        self.output_html = "taipei_shape_route_6.html"
+        self.output_html = f"taipei_shape_route_{self.num_waypoints}.html"
 
 # NOTE: Coordinates are normalized (0..1). Each letter is a single-stroke polyline.
 # Focus: readable shapes, minimal nodes, reasonable stroke order, low backtracking.
@@ -562,9 +584,9 @@ def main():
     
     args = parser.parse_args()
     
-    # 設定配置
-    config = RouteConfig()
-    config.target_shape = args.shape.upper()
+    # 設定配置（直接傳入 shape 參數）
+    shape = args.shape.upper()
+    config = RouteConfig(shape=shape)
     config.max_segment_time = args.max_time
     config.output_html = args.output
     

@@ -4,12 +4,13 @@ TownPass Backend - FastAPI Version with MongoDB
 """
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from contextlib import asynccontextmanager
 import os
 from typing import List
 from dotenv import load_dotenv
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # 添加專案路徑（相對於當前檔案）
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -17,10 +18,14 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
 from database import connect_to_mongo, close_mongo_connection, async_database, Collections
-from models import Route, Spot, RouteDetail, Waypoint, CheckInRequest, CheckIn, UserProgress
+from models import (
+    Route, Spot, RouteDetail, Waypoint, CheckInRequest, CheckIn, UserProgress,
+    RouteSession, StartRouteRequest, CompleteRouteRequest, CertificateRequest
+)
 from services.route_generator import generate_route_for_shape
 from services.svg_service import generate_route_svg
 from services.shape_service import SHAPE_TEMPLATES, SHAPE_INFO
+from services.certificate_service import generate_certificate
 from tsp_taipei_route_new import get_osrm_route, haversine_distance
 
 load_dotenv()
@@ -142,7 +147,8 @@ async def route_list(
 async def get_route_detail(
     shape: str,
     lat: float = Query(25.021777051200228, description="使用者緯度"),
-    lon: float = Query(121.5354050968437, description="使用者經度")
+    lon: float = Query(121.5354050968437, description="使用者經度"),
+    userId: str = Query(None, description="使用者 ID（可選，用於查詢完成狀態）")
 ):
     """
     取得指定圖形的詳細路線資訊
@@ -151,9 +157,10 @@ async def get_route_detail(
         shape: 圖形 ID (T, A, I, P, E, S, U, O, L)
         lat: 使用者緯度
         lon: 使用者經度
+        userId: 使用者 ID（可選）
     
     Returns:
-        RouteDetail: 包含路線幾何、景點、距離等資訊
+        RouteDetail: 包含路線幾何、景點、距離、完成時間等資訊
     """
     try:
         shape = shape.upper()
@@ -164,6 +171,8 @@ async def get_route_detail(
         print(f"\n{'='*70}")
         print(f"📍 生成 {shape} 形路線")
         print(f"   使用者位置: ({lat}, {lon})")
+        if userId:
+            print(f"   使用者 ID: {userId}")
         print(f"{'='*70}")
         
         # 生成路線
@@ -212,15 +221,34 @@ async def get_route_detail(
             'description': f'{shape} 字形路線'
         })
         
+        # 查詢完成狀態（如果提供了 userId）
+        completed_time = None
+        duration_hours = None
+        
+        if userId and async_database is not None:
+            try:
+                session = await async_database[Collections.ROUTE_SESSIONS].find_one({
+                    "userId": userId,
+                    "shape": shape,
+                    "status": "completed"
+                })
+                if session:
+                    completed_time = session['end_time'].isoformat()
+                    duration_hours = session.get('duration_hours')
+                    print(f"   ✅ 路線已完成（{completed_time}）")
+            except Exception as e:
+                print(f"   ⚠️ 查詢完成狀態失敗: {e}")
+        
         route_detail = RouteDetail(
             shape=shape,
             name=info['name'],
             description=info['description'],
-            similarity=route_result['similarity'],
             route_geometry=route_geometry,
             waypoints=waypoints,
             distance_km=distance_km,
-            duration_min=duration_min
+            duration_min=duration_min,
+            completed_time=completed_time,
+            duration_hours=duration_hours
         )
         
         print(f"✅ {shape} 路線生成成功")
@@ -377,8 +405,16 @@ async def get_user_progress(
         
         checkins = await async_database[Collections.CHECKINS].find(checkin_query).to_list(length=1000)
         
+        # 查詢路線會話狀態
+        session_query = {"userId": userId}
+        if shape:
+            session_query["shape"] = shape.upper()
+        
+        sessions = await async_database[Collections.ROUTE_SESSIONS].find(session_query).to_list(length=100)
+        
         print(f"✅ 找到 {len(progress_list)} 個進度記錄")
         print(f"✅ 找到 {len(checkins)} 個打卡記錄")
+        print(f"✅ 找到 {len(sessions)} 個會話記錄")
         print(f"{'='*70}\n")
         
         # 轉換 ObjectId 為字串
@@ -394,10 +430,20 @@ async def get_user_progress(
             if 'timestamp' in c and isinstance(c['timestamp'], datetime):
                 c['timestamp'] = c['timestamp'].isoformat()
         
+        # 處理會話資料
+        for s in sessions:
+            if '_id' in s:
+                s['_id'] = str(s['_id'])
+            if 'start_time' in s and isinstance(s['start_time'], datetime):
+                s['start_time'] = s['start_time'].isoformat()
+            if 'end_time' in s and isinstance(s['end_time'], datetime):
+                s['end_time'] = s['end_time'].isoformat()
+        
         return {
             "userId": userId,
             "progress": progress_list,
             "checkins": checkins,
+            "sessions": sessions,
             "total_checkins": len(checkins)
         }
         
@@ -406,6 +452,251 @@ async def get_user_progress(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"查詢進度失敗: {str(e)}")
+
+@app.post("/api/v1/route/start")
+async def start_route(request: StartRouteRequest):
+    """
+    開始路線計時
+    
+    Args:
+        request: 包含 userId 和 shape
+    
+    Returns:
+        開始狀態和時間
+    """
+    try:
+        print(f"\n{'='*70}")
+        print(f"🚀 開始路線")
+        print(f"   使用者: {request.userId}")
+        print(f"   圖形: {request.shape}")
+        print(f"{'='*70}")
+        
+        if async_database is None:
+            # 無 MongoDB 連線時，返回模擬成功響應
+            print(f"⚠️ 無 MongoDB 連線，返回模擬響應")
+            start_time = datetime.now()
+            print(f"✅ 路線已開始（模擬）")
+            print(f"{'='*70}\n")
+            return {
+                "success": True,
+                "message": "路線已開始（模擬模式）",
+                "session": {
+                    "status": "started",
+                    "start_time": start_time.isoformat()
+                }
+            }
+        
+        # 檢查是否已有進行中或已完成的會話
+        existing_session = await async_database[Collections.ROUTE_SESSIONS].find_one({
+            "userId": request.userId,
+            "shape": request.shape.upper()
+        })
+        
+        if existing_session:
+            if existing_session.get('status') == 'completed':
+                return {
+                    "success": False,
+                    "message": "此路線已完成，無法重新開始",
+                    "session": {
+                        "status": "completed",
+                        "start_time": existing_session['start_time'].isoformat(),
+                        "end_time": existing_session.get('end_time').isoformat() if existing_session.get('end_time') else None
+                    }
+                }
+            elif existing_session.get('status') == 'started':
+                return {
+                    "success": True,
+                    "message": "路線已在進行中",
+                    "session": {
+                        "status": "started",
+                        "start_time": existing_session['start_time'].isoformat()
+                    }
+                }
+        
+        # 創建新的路線會話
+        start_time = datetime.now()
+        session_data = {
+            "userId": request.userId,
+            "shape": request.shape.upper(),
+            "status": "started",
+            "start_time": start_time,
+            "end_time": None,
+            "duration_hours": None
+        }
+        
+        await async_database[Collections.ROUTE_SESSIONS].insert_one(session_data)
+        
+        print(f"✅ 路線已開始")
+        print(f"{'='*70}\n")
+        
+        return {
+            "success": True,
+            "message": "路線已開始",
+            "session": {
+                "status": "started",
+                "start_time": start_time.isoformat()
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ 開始路線錯誤: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"開始路線失敗: {str(e)}")
+
+@app.post("/api/v1/route/complete")
+async def complete_route(request: CompleteRouteRequest):
+    """
+    完成路線（所有打卡完成時呼叫）
+    
+    Args:
+        request: 包含 userId 和 shape
+    
+    Returns:
+        完成狀態、耗時等資訊
+    """
+    try:
+        print(f"\n{'='*70}")
+        print(f"🎉 完成路線")
+        print(f"   使用者: {request.userId}")
+        print(f"   圖形: {request.shape}")
+        print(f"{'='*70}")
+        
+        if async_database is None:
+            # 無 MongoDB 連線時，返回模擬成功響應
+            print(f"⚠️ 無 MongoDB 連線，返回模擬響應")
+            end_time = datetime.now()
+            duration_hours = 0.5  # 模擬30分鐘
+            print(f"✅ 路線已完成（模擬）")
+            print(f"   耗時: {duration_hours:.2f} 小時")
+            print(f"{'='*70}\n")
+            return {
+                "success": True,
+                "message": "恭喜完成路線！（模擬模式）",
+                "session": {
+                    "status": "completed",
+                    "start_time": (end_time - timedelta(hours=duration_hours)).isoformat(),
+                    "end_time": end_time.isoformat(),
+                    "duration_hours": round(duration_hours, 2)
+                }
+            }
+        
+        # 查詢路線會話
+        session = await async_database[Collections.ROUTE_SESSIONS].find_one({
+            "userId": request.userId,
+            "shape": request.shape.upper(),
+            "status": "started"
+        })
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="找不到進行中的路線會話")
+        
+        # 計算耗時
+        end_time = datetime.now()
+        start_time = session['start_time']
+        duration_seconds = (end_time - start_time).total_seconds()
+        duration_hours = duration_seconds / 3600
+        
+        # 更新會話狀態
+        await async_database[Collections.ROUTE_SESSIONS].update_one(
+            {"_id": session['_id']},
+            {
+                "$set": {
+                    "status": "completed",
+                    "end_time": end_time,
+                    "duration_hours": duration_hours
+                }
+            }
+        )
+        
+        print(f"✅ 路線已完成")
+        print(f"   耗時: {duration_hours:.2f} 小時")
+        print(f"{'='*70}\n")
+        
+        return {
+            "success": True,
+            "message": "恭喜完成路線！",
+            "session": {
+                "status": "completed",
+                "start_time": start_time.isoformat(),
+                "end_time": end_time.isoformat(),
+                "duration_hours": round(duration_hours, 2)
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ 完成路線錯誤: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"完成路線失敗: {str(e)}")
+
+@app.get("/api/v1/certificate/{userId}/{shape}")
+async def get_certificate(userId: str, shape: str):
+    """
+    生成並下載完成證書
+    
+    Args:
+        userId: 使用者 ID
+        shape: 圖形 ID
+    
+    Returns:
+        證書圖片（PNG）
+    """
+    try:
+        print(f"\n{'='*70}")
+        print(f"🎓 生成證書")
+        print(f"   使用者: {userId}")
+        print(f"   圖形: {shape}")
+        print(f"{'='*70}")
+        
+        if async_database is None:
+            raise HTTPException(status_code=503, detail="資料庫連線不可用")
+        
+        # 查詢已完成的路線會話
+        session = await async_database[Collections.ROUTE_SESSIONS].find_one({
+            "userId": userId,
+            "shape": shape.upper(),
+            "status": "completed"
+        })
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="找不到已完成的路線記錄")
+        
+        # 生成證書
+        # 使用者名稱可以從 userId 或者從其他地方獲取，這裡暫時使用 userId
+        # 在實際應用中，應該從用戶資料表中獲取真實姓名
+        user_name = userId  # 可以改為從資料庫獲取真實姓名
+        
+        certificate_bytes = generate_certificate(
+            user_name=user_name,
+            shape=shape.upper(),
+            completed_time=session['end_time'].isoformat(),
+            duration_hours=session.get('duration_hours', 0)
+        )
+        
+        print(f"✅ 證書已生成")
+        print(f"{'='*70}\n")
+        
+        # 返回圖片
+        return Response(
+            content=certificate_bytes,
+            media_type="image/png",
+            headers={
+                "Content-Disposition": f"attachment; filename=certificate_{shape}_{userId}.png"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ 生成證書錯誤: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"生成證書失敗: {str(e)}")
 
 
 if __name__ == "__main__":

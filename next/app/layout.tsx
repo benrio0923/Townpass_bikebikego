@@ -12,8 +12,8 @@ const notoSansTC = Noto_Sans_TC({
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "台北探索通 - 政府服務平台",
-  description: "台北市政府開源接口微服務",
+  title: "台北騎跡 - 政府服務平台",
+  description: "騎出字母軌跡，探索台北景點",
   generator: "v0.app",
   icons: {
     icon: [

@@ -59,3 +59,4 @@ class Collections:
     SHAPES = "shapes"
     CHECKINS = "checkins"
     USER_PROGRESS = "user_progress"
+    ROUTE_SESSIONS = "route_sessions"
