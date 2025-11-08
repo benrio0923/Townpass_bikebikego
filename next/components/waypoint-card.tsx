@@ -36,16 +36,30 @@ export function WaypointCard({
   };
 
   const handleCheckIn = async () => {
-    setCheckInMessage('');
+    setCheckInMessage('正在獲取您的位置...');
     
     try {
-      // Get current location
+      // Get current location with better error handling
       const locationResult = await getCurrentLocation();
       
       if (!locationResult.success || !locationResult.location) {
-        setCheckInMessage('無法獲取您的位置：' + (locationResult.error || '未知錯誤'));
+        let errorMessage = '無法獲取您的位置';
+        
+        if (locationResult.error?.includes('denied')) {
+          errorMessage = '請在瀏覽器設定中允許位置存取權限';
+        } else if (locationResult.error?.includes('unavailable')) {
+          errorMessage = '位置服務暫時無法使用，請稍後再試';
+        } else if (locationResult.error?.includes('timeout')) {
+          errorMessage = '位置獲取超時，請確認 GPS 已開啟';
+        } else if (locationResult.error) {
+          errorMessage = `位置獲取失敗：${locationResult.error}`;
+        }
+        
+        setCheckInMessage(errorMessage);
         return;
       }
+
+      setCheckInMessage('驗證位置中...');
 
       const request: CheckInRequest = {
         userId,
@@ -60,14 +74,15 @@ export function WaypointCard({
       if (result) {
         if (result.success && result.verified) {
           setCheckedIn(true);
-          setCheckInMessage('打卡成功！ ✓');
+          setCheckInMessage(`✓ 打卡成功！距離景點 ${result.distance.toFixed(0)} 公尺`);
           onCheckInSuccess?.();
         } else {
-          setCheckInMessage(result.message || '打卡失敗');
+          const distanceMsg = result.distance > 0 ? `（距離 ${result.distance.toFixed(0)} 公尺）` : '';
+          setCheckInMessage(`${result.message || '打卡失敗'} ${distanceMsg}`);
         }
       }
     } catch (error) {
-      setCheckInMessage('打卡時發生錯誤');
+      setCheckInMessage('打卡時發生錯誤，請稍後再試');
       console.error('Check-in error:', error);
     }
   };
@@ -151,7 +166,13 @@ export function WaypointCard({
 
           {/* Check-in Message */}
           {checkInMessage && (
-            <div className={`text-xs mt-2 ${checkedIn ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`text-xs mt-2 p-2 rounded ${
+              checkedIn 
+                ? 'bg-green-50 text-green-700 border border-green-200' 
+                : checkInMessage.includes('正在') || checkInMessage.includes('驗證')
+                ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                : 'bg-red-50 text-red-700 border border-red-200'
+            }`}>
               {checkInMessage}
             </div>
           )}

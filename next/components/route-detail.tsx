@@ -1,12 +1,22 @@
 "use client"
 
+import dynamic from 'next/dynamic';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { RouteMap } from "@/components/route-map";
 import { WaypointCard } from "@/components/waypoint-card";
 import { useRouteDetail, useProgress } from "@/hooks/use-route-api";
 import { X, MapPin, Clock, TrendingUp, Loader2 } from "lucide-react";
+
+// 動態導入 RouteMap，禁用 SSR
+const RouteMap = dynamic(() => import('@/components/route-map').then(mod => ({ default: mod.RouteMap })), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full rounded-lg border-2 border-[#B4E2EA] flex items-center justify-center bg-gray-50" style={{ height: '400px' }}>
+      <Loader2 className="w-8 h-8 text-[#5AB4C5] animate-spin" />
+    </div>
+  )
+});
 
 interface RouteDetailProps {
   shape: string;

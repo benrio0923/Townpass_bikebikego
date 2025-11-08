@@ -77,6 +77,12 @@ class TPWebView extends StatelessWidget {
         controller: appBarController,
       ),
       body: TPInAppWebView(
+        initialSettings: InAppWebViewSettings(
+          geolocationEnabled: true,
+          javaScriptEnabled: true,
+          domStorageEnabled: true,
+          databaseEnabled: true,
+        ),
         onWebViewCreated: (controller) {
           webViewController.value = controller;
           try {
@@ -95,7 +101,7 @@ class TPWebView extends StatelessWidget {
           };
         },
         onGeolocationPermissionsShowPrompt: (controller, origin) async {
-          // should be deal individually (ask for user agreement)
+          // Allow geolocation for all origins
           return GeolocationPermissionShowPromptResponse(origin: origin, allow: true, retain: true);
         },
         onCloseWindow: (_) => Get.back(),
