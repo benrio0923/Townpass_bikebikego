@@ -8,7 +8,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # 安裝依賴
-RUN npm ci
+RUN npm install --legacy-peer-dps
+
 
 # 複製專案
 COPY . .
