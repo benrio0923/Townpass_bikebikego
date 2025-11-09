@@ -15,6 +15,7 @@ interface WaypointCardProps {
   userId: string;
   isCheckedIn?: boolean;
   isCompleted?: boolean;
+  isPreviousCheckedIn?: boolean;
   onCheckInSuccess?: (waypointId: string) => void;
 }
 
@@ -25,6 +26,7 @@ export function WaypointCard({
   userId,
   isCheckedIn = false,
   isCompleted = false,
+  isPreviousCheckedIn = true,
   onCheckInSuccess
 }: WaypointCardProps) {
   const { checkIn, loading } = useCheckIn();
@@ -41,6 +43,12 @@ export function WaypointCard({
   };
 
   const handleCheckIn = async () => {
+    // Check if previous waypoint is checked in (for sequential check-in)
+    if (!isPreviousCheckedIn && index > 1) {
+      setCheckInMessage(`⚠️ 請先完成第 ${index - 1} 個景點的打卡！請依照順序進行打卡。`);
+      return;
+    }
+    
     setCheckInMessage('正在獲取您的位置...');
     
     try {

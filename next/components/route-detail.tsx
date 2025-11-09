@@ -360,18 +360,24 @@ export function RouteDetail({ shape, onClose }: RouteDetailProps) {
             </span>
           </h2>
           <div className="space-y-3">
-            {route.waypoints.map((waypoint, index) => (
-              <WaypointCard
-                key={waypoint.id}
-                waypoint={waypoint}
-                index={index + 1}
-                shape={shape}
-                userId={USER_ID}
-                isCheckedIn={checkedInWaypoints.has(waypoint.id)}
-                isCompleted={isCompleted}
-                onCheckInSuccess={handleCheckInSuccess}
-              />
-            ))}
+            {route.waypoints.map((waypoint, index) => {
+              // Check if previous waypoint is checked in
+              const isPreviousCheckedIn = index === 0 || checkedInWaypoints.has(route.waypoints[index - 1].id);
+              
+              return (
+                <WaypointCard
+                  key={waypoint.id}
+                  waypoint={waypoint}
+                  index={index + 1}
+                  shape={shape}
+                  userId={USER_ID}
+                  isCheckedIn={checkedInWaypoints.has(waypoint.id)}
+                  isCompleted={isCompleted}
+                  isPreviousCheckedIn={isPreviousCheckedIn}
+                  onCheckInSuccess={handleCheckInSuccess}
+                />
+              );
+            })}
           </div>
         </div>
       </div>
