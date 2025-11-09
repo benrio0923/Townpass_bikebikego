@@ -16,6 +16,7 @@ interface WaypointCardProps {
   isCheckedIn?: boolean;
   isCompleted?: boolean;
   isPreviousCheckedIn?: boolean;
+  isRouteStarted?: boolean;
   onCheckInSuccess?: (waypointId: string) => void;
 }
 
@@ -27,6 +28,7 @@ export function WaypointCard({
   isCheckedIn = false,
   isCompleted = false,
   isPreviousCheckedIn = true,
+  isRouteStarted = false,
   onCheckInSuccess
 }: WaypointCardProps) {
   const { checkIn, loading } = useCheckIn();
@@ -43,6 +45,12 @@ export function WaypointCard({
   };
 
   const handleCheckIn = async () => {
+    // Check if route has been started
+    if (!isRouteStarted) {
+      setCheckInMessage('⚠️ 請先點擊「開始路線」按鈕才能開始打卡！');
+      return;
+    }
+    
     // Check if previous waypoint is checked in (for sequential check-in)
     if (!isPreviousCheckedIn && index > 1) {
       setCheckInMessage(`⚠️ 請先完成第 ${index - 1} 個景點的打卡！請依照順序進行打卡。`);

@@ -374,6 +374,7 @@ export function RouteDetail({ shape, onClose }: RouteDetailProps) {
                   isCheckedIn={checkedInWaypoints.has(waypoint.id)}
                   isCompleted={isCompleted}
                   isPreviousCheckedIn={isPreviousCheckedIn}
+                  isRouteStarted={isStarted}
                   onCheckInSuccess={handleCheckInSuccess}
                 />
               );
